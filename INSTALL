@@ -106,8 +106,7 @@ ifconfig
 Then you are ready to add the following to the crontab and let the wipi start monitoring and sending data
 
 *** ADD to root crontab
-sudo su -
-crontab -e
+sudo crontab -e
 */1 * * * * sudo /usr/bin/php /home/pi/wifi_info.php >/dev/null 2>&1
 :x
 
