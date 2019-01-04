@@ -21,7 +21,9 @@ sudo raspi-config
 
 sudo apt-get update
 
-sudo apt-get nmap
+sudo apt-get install git
+
+sudo apt-get install nmap
 
 sudo apt-get install php php-curl
 
@@ -33,7 +35,6 @@ vim /etc/dhcpcd.conf
 	interface eth0
 	metric 300
 
-sudo apt-get install nmap
 
 sudo apt-get install wavemon
 	NOTE: this is a good little tool to mess around with, google it, but optional
