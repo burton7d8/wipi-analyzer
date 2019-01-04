@@ -1,0 +1,118 @@
+--== INITIAL WIPI-ANALYZER SLAVE SETUP STEPS ===---
+
+!!! NOTE: Make sure you go through the WiPi-Analyzer-Server setup first before setting up your pi
+
+Connect to your Raspbery Pi username: { pi } password: { raspberry }
+
+sudo raspi-config
+-- Choose option 1 { Change User Password } and change your password
+-- Choose option 2 { Network Options } and set the hostname to either { wipimonitor-2g } or { wipimonitor-5g } 
+		depending on what freq the wipi will be joined to and monitoring
+	Note: don't bother setting up the wifi password here, we will do that later with another script
+	-Back to Main Menu
+-- Choose option 4 { Localisation Options } and set your locale, timezone, and keyboard settings for your region
+	-Back to Main Menu
+-- Choose option 5 { Interfacing Options } and enable the SSH server [ OPTIONAL ]
+	-Back to Main Menu
+-- Choose Finish to exit
+
+
+
+
+sudo apt-get update
+
+sudo apt-get nmap
+
+sudo apt-get install php php-curl
+
+sudo apt-get install ifmetric
+vim /etc/dhcpcd.conf
+	interface wlan0
+	metric 200
+
+	interface eth0
+	metric 300
+
+sudo apt-get install nmap
+
+sudo apt-get install wavemon
+	NOTE: this is a good little tool to mess around with, google it, but optional
+
+
+---=== SLAVE WIPI MONITORING SCRIPTS INSTALL ===---
+
+Connect your pi to your network via an ethernet connection
+
+cd /home/pi
+git init
+git pull https://github.com/burton7d8/wipi-analyzer master
+
+
+sudo vim /home/pi/wifi_info.php
+	-- Update the following lines at the top of the page
+		$shared_key = "wipi";
+		$skip_ssl_checking = "no";
+		$wipi_server_url = "https://your_server_domain_or_ip_here/wipi/wipi-analyzer-server/wipi.php";
+
+		- Set $shared_key = "wipi" to match your secret that you set 
+			on the server wipi_config.php under $wipi_shared_key = "";
+		- Set $skip_ssl_checking = "no"; to "yes", if you are having issues when
+			utilizing a self signed certificate 
+		- Set $wipi_server_url to match the url or ip address of your SQL server
+			NOTE: If you choose to not use ssl, then set it to http://  
+				Using SSL is HIGHLY recommended, otherwise your shared key
+				will be transfered unencrypted, leaving you exposed
+				- if using userspice, you will also have to turn off "force ssl" under
+					site setings, if not using ssl
+
+--NOTE: the next two commands are optional, this will auto prompt you if you want to update
+	the wifi settings whenever you login to the pi, so that you can easily change to another ssid
+
+sudo vim /home/pi/.bashrc
+sudo /bin/bash /home/pi/wificonfig.sh
+
+
+
+mkdir /home/pi/logs
+
+sudo vim /etc/logrotate.conf
+:set mouse-=a
+:set paste
+--paste the following at the end of the file
+/home/pi/logs/*.log {
+        daily
+        missingok
+        rotate 7
+        notifempty
+}
+
+-- Setup your wireless network you want to join
+	NOTE: remember to join either your 2g or 5g SSID based on the hostname you set on the pi
+	-- if both of your pi's are pi 3's then you may have to set your 5g SSID with a -5g on the 
+		end to be able to tell the difference, otherwise you can use an older pi model
+		that only supports 2.4ghz to act as your 2.4ghz wipi monitor
+
+cd /home/pi
+./wificonfig.sh
+
+iwconfig
+--If  this line 
+		wlan0     IEEE 802.11  ESSID:YOUR_SSID
+	-shows you connected to your ssid AND
+ifconfig
+	-shows you having an IP from the SSID you joined
+
+Then you are ready to add the following to the crontab and let the wipi start monitoring and sending data
+
+*** ADD to root crontab
+sudo su -
+crontab -e
+*/1 * * * * sudo /usr/bin/php /home/pi/wifi_info.php >/dev/null 2>&1
+:x
+
+
+ENJOY! Hope you find this thrown together mess usefull!  
+
+( Also, dont make fun of my code, I'm self taught and lazy sometimes 
+	just correct it and send it my way so I can learn )
+
