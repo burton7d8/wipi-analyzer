@@ -24,6 +24,10 @@ if [ "$(whoami)" != "root" ]
 			wpa_cli -i wlan0 remove_network 0
 			wpa_cli -i wlan0 save
 			wpa_passphrase $ssid $wifipw >> /etc/wpa_supplicant/wpa_supplicant.conf
+			sed -i '$ d' /etc/wpa_supplicant/wpa_supplicant.conf
+			#scan_ssid=1 allows for recognizing hidden SSIDs, added spaces to keep the file uniform
+			echo "        scan_ssid=1" >> /etc/wpa_supplicant/wpa_supplicant.conf
+			echo } >> /etc/wpa_supplicant/wpa_supplicant.conf
 			wpa_cli -i wlan0 reconfigure
 		fi	
 	;;
